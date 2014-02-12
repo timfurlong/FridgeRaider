@@ -1,0 +1,39 @@
+body {
+  padding-top: 50px;
+}
+.starter-template {
+  padding: 40px 15px;
+  text-align: center;
+}
+
+.row-padded {
+  padding: 35px;
+  background-color: #F7F7F7;
+  /*border: 1px solid #DDD;*/
+}
+
+.img-circle{
+   height: 230px;
+}
+
+#ResultsTable{
+   margin-top: 50px;
+}
+
+.recipeTitle{}
+
+.recipeIngredients{}
+
+.recipeDescriptionBox{}
+
+.navLogo{
+   height: 35px;
+}
+
+#footer{
+
+}
+
+.infoBox{
+   text-align: center;
+}
