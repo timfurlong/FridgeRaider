@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+   {% load static %}
+   <meta charset="utf-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <meta name="description" content="">
+   <meta name="author" content="">
+   <link rel="shortcut icon" href="{% static 'assets/FridgeRaiderIcon.ico' %}">
+
+   <title>FridgeRaider | Recipe Search</title>
+
+   <!-- Bootstrap core CSS -->
+   <link href="{% static 'bootstrap/bootstrap.min.css'%}" rel="stylesheet">
+
+   <!-- Custom styles for this template -->
+   <link href="{% static 'css/search.css' %}" rel="stylesheet">
+
+   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+   <!--[if lt IE 9]>
+     <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+     <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+   <![endif]-->
+  </head>
+
+  <body>
+
+   {% include "navbar.html" %}
+
+   <div class="container">
+
+      <div class="starter-template">
+         <form action="" id='ingredientsForm'>
+            <div class="input-group">
+               <span class="input-group-addon">Ingredients:</span>
+               <input type="text" name="IngredientsList" id="IngredientsInput" class="form-control" placeholder="For example: onions, bok choy, coconut milk">
+            </div>
+         </form>
+
+         {% if didSearch %}
+            {% if matches %}
+               <div class="alert alert-info">
+                  <p>{{ infoMsg }}</p>
+               </div>
+               <div class="row row-padded">
+               {%for r in matches %}
+                  <div class="col-md-3 recipeDescriptionBox">
+                     <a href="{{ r.yummlyUrl }}" target="_blank">
+                        <img src="{{ r.imageUrlsBySize.230 }}" class="img-rounded">
+                     </a>
+                     <h3 class="recipeTitle">{{ r.recipeName }}</h3>
+                     <p class="text-muted">{{ r.ingredientsStr|truncatechars:110 }}</p>
+                  </div>
+                  {% if forloop.counter|divisibleby:"4" %}
+                     </div>
+                     <div class="row row-padded">
+                  {% endif %}
+               {% endfor %}
+                     </div> {# close the last recipeDescription box #}
+               <ul class="pager">
+                  {% ifnotequal page '1' %}
+                     <li><a href="search/{{ page|add:-1 }}">Previous</a></li>
+                  {% endifnotequal %}
+                  {% ifnotequal page maxPage %}
+                     <li><a href="{{ page|add:1 }}">Next</a></li>
+                  {% endifnotequal %}
+               </ul>
+            {% else %}
+               <div class="row row-padded">
+                  <div class="alert alert-danger">
+                     <p>{{ errorMsg }}</p>
+                  </div>
+               </div>
+            {% endif %}
+         {% endif %}
+      </div>
+
+   </div>{# end .container #}
+</body>
+</html>
+
+{# Some filters take arguments. A filter argument looks like this: {{ bio|truncatewords:30 }}. This will display the first 30 words of the bio variable. #}

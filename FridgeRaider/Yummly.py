@@ -55,13 +55,12 @@ class Yummly:
 					ingredientObj = self.addIngredient( ingredientName )
 					recipe.ingredients.add( ingredientObj )
 
-
 	def getRecipes(self, IngredientsList, numPerRequest = 10, start=0):
 		res = self.search(IngredientsList, numPerRequest, start)
 		matchCount = res['totalMatchCount']
 		self.addRecipes( res['matches'] )
 		start += numPerRequest
-		page = 2
+		page = 1
 		while start < matchCount:
 			print '\nRESULTS FOR REQUEST #%d (start=%d out of total matches=%d)\n' % (page, start,matchCount)
 			res = self.search(IngredientsList, numPerRequest, start)
@@ -70,7 +69,7 @@ class Yummly:
 			start += numPerRequest
 			page += 1
 
-	def search(self, IngredientsList, maxResult = 10, start=0, attempt_no=1):
+	def search(self, IngredientsList, maxResult = 12, start=0, attempt_no=1):
 		res = requests.get( "http://api.yummly.com/v1/api/recipes",
 								params={ 'q': IngredientsList,
 													'requirePictures': 'true',

@@ -1,0 +1,21 @@
+body {
+  padding-top: 50px;
+}
+.starter-template {
+  padding: 40px 15px;
+  text-align: center;
+}
+
+.row-padded {
+  padding: 35px;
+  background-color: #F7F7F7;
+  /*border: 1px solid #DDD;*/
+}
+
+#ResultsTable{
+   margin-top: 50px;
+}
+
+.alert-info{
+   margin-top: 20px;
+}

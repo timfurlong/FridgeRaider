@@ -1,6 +1,8 @@
 # All Django wants is that HttpResponse. Or an exception.
 from FridgeRaider.models import Ingredient, Recipe
+from FridgeRaider.Yummly import Yummly
 from django.shortcuts import render_to_response
+from math import floor
 
 simpleSearch = True
 def home(request):
@@ -9,15 +11,14 @@ def home(request):
       })
 
 def search(request):
+   pageSize = 12
    IngredStr = request.GET.get('IngredientsList')
    if IngredStr:
       didSearch = True
-      pageSize = 12
       IngredStrList = [i.strip() for i in IngredStr.split(',')]
       IngredientsList = []
       for i in IngredStrList:
          IngredientsList += Ingredient.objects.filter(name__icontains=i)
-      print IngredientsList
       matches = Recipe.objects.filter(ingredients__in=IngredientsList)
       if len(matches) > pageSize:
          matches = matches[:pageSize]
@@ -33,3 +34,39 @@ def search(request):
       'didSearch': didSearch,
       })
 
+def searchSimple(request, page=1):
+   pageSize = 12
+   q = request.GET.get('IngredientsList')
+   if q:
+      didSearch = True
+      start = (int(page)-1)*pageSize
+      res = Yummly().search(q, maxResult=pageSize, start=start)
+      maxPage = floor( float(res['totalMatchCount']) / float(pageSize) )
+      if start > res['totalMatchCount']:
+         errorMsg = 'Page #%s exceeds the total number of results' % page
+         infoMsg = None
+         matches = []
+      else:
+         matches = res['matches']
+         infoMsg = '%d results' % ( res['totalMatchCount'] )
+         for r in matches:
+            r['imageUrlsBySize']['230'] = r['imageUrlsBySize']['90'].replace('s90-c','s230-c')
+            r['yummlyUrl'] = "http://www.yummly.com/recipe/%s"%r['id']
+            r['ingredientsStr'] = ', '.join( r['ingredients'] )
+         else:
+            errorMsg = 'No recipes found for %s. Please try again.' % q
+   else:
+      matches = None
+      didSearch = False
+      errorMsg = None
+      infoMsg = None
+      maxPage = None
+   return render_to_response('searchSimple.html',{
+      'RecipeSearch' : True,
+      'matches' : matches,
+      'didSearch': didSearch,
+      'errorMsg': errorMsg,
+      'infoMsg': infoMsg,
+      'page': page,
+      'maxPage': maxPage,
+      })

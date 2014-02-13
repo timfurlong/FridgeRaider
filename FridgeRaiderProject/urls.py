@@ -7,7 +7,9 @@ from django.conf.urls import patterns, url
 urlpatterns = patterns('FridgeRaider.views',
     # Examples:
     url(r'^$', 'home', name='home'),
-    url(r'^search/$', 'search',name='search'),
+    url(r'^search/$', 'searchSimple',),
+    url(r'^search/(?P<page>\d+)/$', 'searchSimple',name='search'),
+    # url(r'^search/$', 'search',name='search'),
     # url(r'^FridgeRaiderProject/', include('FridgeRaiderProject.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
