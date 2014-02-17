@@ -49,14 +49,13 @@ def searchSimple(request):
       start = (int(page)-1)*pageSize
       res = Yummly().search(q, maxResult=pageSize, start=start)
       maxPage = ceil( float(res['totalMatchCount']) / float(pageSize) )
-      print page, start, maxPage, res['totalMatchCount']
       if start > res['totalMatchCount']:
-         errorMsg = 'Page #%s exceeds the total number of results' % page
-         infoMsg = None
-         matches = []
+         errorMsg    = 'Page #%s exceeds the total number of results' % page
+         infoMsg     = None
+         matches     = []
       else:
          matches = res['matches']
-         infoMsg = '%d results' % ( res['totalMatchCount'] )
+         infoMsg = 'Results %d - %d' % ( start+1, start+1+pageSize )
          for r in matches:
             r['imageUrlsBySize']['230'] = r['imageUrlsBySize']['90'].replace('s90-c','s230-c')
             r['yummlyUrl'] = "http://www.yummly.com/recipe/%s"%r['id']
@@ -64,10 +63,10 @@ def searchSimple(request):
          else:
             errorMsg = 'No recipes found for %s. Please try again.' % q
    else:
-      matches = None
-      errorMsg = None
-      infoMsg = None
-      maxPage = None
+      matches     = None
+      errorMsg    = None
+      infoMsg     = None
+      maxPage     = None
    return render_to_response('searchSimple.html',{
       'RecipeSearch' : True,
       'matches' : matches,
