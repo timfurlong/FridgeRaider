@@ -2,7 +2,7 @@
 from FridgeRaider.models import Ingredient, Recipe
 from FridgeRaider.Yummly import Yummly
 from django.shortcuts import render_to_response
-from math import floor
+from math import ceil
 
 simpleSearch = True
 def home(request):
@@ -39,14 +39,17 @@ def search(request):
       'didSearch': didSearch,
       })
 
-def searchSimple(request, page=1):
+def searchSimple(request):
    pageSize = 12
-   q = request.GET.get('IngredientsList')
+   q        = request.GET.get('IngredientsList')
+   page     = request.GET.get('page')
+   if not page:
+      page = '1'
    if q:
-      didSearch = True
       start = (int(page)-1)*pageSize
       res = Yummly().search(q, maxResult=pageSize, start=start)
-      maxPage = floor( float(res['totalMatchCount']) / float(pageSize) )
+      maxPage = ceil( float(res['totalMatchCount']) / float(pageSize) )
+      print page, start, maxPage, res['totalMatchCount']
       if start > res['totalMatchCount']:
          errorMsg = 'Page #%s exceeds the total number of results' % page
          infoMsg = None
@@ -62,14 +65,13 @@ def searchSimple(request, page=1):
             errorMsg = 'No recipes found for %s. Please try again.' % q
    else:
       matches = None
-      didSearch = False
       errorMsg = None
       infoMsg = None
       maxPage = None
    return render_to_response('searchSimple.html',{
       'RecipeSearch' : True,
       'matches' : matches,
-      'didSearch': didSearch,
+      'q': q,
       'errorMsg': errorMsg,
       'infoMsg': infoMsg,
       'page': page,

@@ -38,7 +38,7 @@
             </div>
          </form>
 
-         {% if didSearch %}
+         {% if q %}
             {% if matches %}
                <div class="alert alert-info">
                   <p>{{ infoMsg }}</p>
@@ -60,10 +60,10 @@
                      </div> {# close the last recipeDescription box #}
                <ul class="pager">
                   {% ifnotequal page '1' %}
-                     <li><a href="search/{{ page|add:-1 }}">Previous</a></li>
+                     <li><a href="?IngredientsList={{ q }}&page={{ page|add:-1 }}">Previous</a></li>
                   {% endifnotequal %}
                   {% ifnotequal page maxPage %}
-                     <li><a href="{{ page|add:1 }}">Next</a></li>
+                     <li><a href="?IngredientsList={{ q }}&page={{ page|add:1 }}">Next</a></li>
                   {% endifnotequal %}
                </ul>
             {% else %}
