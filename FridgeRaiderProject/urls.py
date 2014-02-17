@@ -9,6 +9,7 @@ urlpatterns = patterns('FridgeRaider.views',
     url(r'^$', 'home', name='home'),
     url(r'^search/$', 'searchSimple',),
     url(r'^search/(?P<page>\d+)/$', 'searchSimple',name='search'),
+    url(r'^about/$', 'about',),
     # url(r'^search/$', 'search',name='search'),
     # url(r'^FridgeRaiderProject/', include('FridgeRaiderProject.foo.urls')),
 

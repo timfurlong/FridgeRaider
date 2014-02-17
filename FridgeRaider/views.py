@@ -10,6 +10,11 @@ def home(request):
       'Home': True,
       })
 
+def about(request):
+   return render_to_response('about.html',{
+      'About':True,
+      })
+
 def search(request):
    pageSize = 12
    IngredStr = request.GET.get('IngredientsList')
