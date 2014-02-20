@@ -1,3 +1,6 @@
+import os
+import dj_database_url
+
 # Django settings for FridgeRaiderProject project.
 
 DEBUG = True
@@ -159,25 +162,31 @@ LOGGING = {
 
 
 # ==============================================================================
+# HEROKU SPECIFIC SETUP
 # From https://devcenter.heroku.com/articles/getting-started-with-django
 # ==============================================================================
+if 'DATABASE_URL' in os.environ:
+    '''Heroku specific setup. use dj_database_url to set up database '''
+    # Parse database configuration from $DATABASE_URL
+    DATABASES['default'] =  dj_database_url.config()
 
-# Parse database configuration from $DATABASE_URL
-import dj_database_url
-DATABASES['default'] =  dj_database_url.config()
+    # Honor the 'X-Forwarded-Proto' header for request.is_secure()
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Honor the 'X-Forwarded-Proto' header for request.is_secure()
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # Allow all host headers
+    ALLOWED_HOSTS = ['*']
 
-# Allow all host headers
-ALLOWED_HOSTS = ['*']
+    # Static asset configuration
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    STATIC_ROOT = 'staticfiles'
+    STATIC_URL = '/static/'
 
-# Static asset configuration
-import os
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_ROOT = 'staticfiles'
-STATIC_URL = '/static/'
+    STATICFILES_DIRS = (
+        os.path.join(BASE_DIR, 'static'),
+    )
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
+# ==============================================================================
+# CUSTOM SETTINGS
+# ==============================================================================
+
+useSimpleSearch = False

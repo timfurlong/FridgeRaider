@@ -34,11 +34,11 @@
          <form action="" id='ingredientsForm'>
             <div class="input-group">
                <span class="input-group-addon">Ingredients:</span>
-               <input type="text" name="IngredientsList" id="IngredientsInput" class="form-control" placeholder="For example: onions, bok choy, coconut milk">
+               <input type="text" name="q" id="IngredientsInput" class="form-control" placeholder="For example: onions, bok choy, coconut milk">
             </div>
          </form>
 
-         {% if didSearch %}
+         {% if q %}
             {% if matches %}
                <div class="row row-padded">
                {%for r in matches %}

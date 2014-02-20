@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url
-
+from FridgeRaiderProject.settings import useSimpleSearch
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
 # admin.autodiscover()
@@ -7,8 +7,6 @@ from django.conf.urls import patterns, url
 urlpatterns = patterns('FridgeRaider.views',
     # Examples:
     url(r'^$', 'home', name='home'),
-    url(r'^search/$', 'searchSimple',),
-    url(r'^search/(?P<page>\d+)/$', 'searchSimple',name='search'),
     url(r'^about/$', 'about',),
     # url(r'^search/$', 'search',name='search'),
     # url(r'^FridgeRaiderProject/', include('FridgeRaiderProject.foo.urls')),
@@ -19,6 +17,16 @@ urlpatterns = patterns('FridgeRaider.views',
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
 )
+
+if useSimpleSearch:
+  urlpatterns += patterns('FridgeRaider.views',
+    url(r'^search/$', 'searchSimple',),
+    url(r'^search/(?P<page>\d+)/$', 'searchSimple',name='search'),)
+else:
+  urlpatterns += patterns('FridgeRaider.views',
+    url(r'^search/$', 'search',),
+    url(r'^search/(?P<page>\d+)/$', 'search',name='search'),)
+
 '''
 urlpatterns = patterns('',
    # Examples:

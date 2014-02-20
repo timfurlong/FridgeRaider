@@ -4,7 +4,7 @@ from FridgeRaider.Yummly import Yummly
 from django.shortcuts import render_to_response
 from math import ceil
 
-simpleSearch = True
+
 def home(request):
    return render_to_response('home.html', {
       'Home': True,
@@ -17,27 +17,40 @@ def about(request):
 
 def search(request):
    pageSize = 12
-   IngredStr = request.GET.get('IngredientsList')
-   if IngredStr:
-      didSearch = True
-      IngredStrList = [i.strip() for i in IngredStr.split(',')]
-      IngredientsList = []
-      for i in IngredStrList:
-         IngredientsList += Ingredient.objects.filter(name__icontains=i)
-      matches = Recipe.objects.filter(ingredients__in=IngredientsList)
+   q = request.GET.get('q')
+   if q: # Search was made
+      matches = getPossibleRecipes(q)
       if len(matches) > pageSize:
          matches = matches[:pageSize]
       for m in matches:
          m.imageUrl = m.getImageUrlBySize(230)
    else:
-      IngredientsList = None
       matches         = None
-      didSearch       = False
    return render_to_response('search.html',{
       'RecipeSearch': True,
       'matches': matches,
-      'didSearch': didSearch,
+      'q': q,
       })
+
+def getPossibleRecipes( q ):
+   '''Get all recipes that use only the ingredients listed in q. q is a comma seperated list of ingredients.'''
+   qList = [i.strip() for i in q.split(',')]
+   # Gather ingredients list
+   IngredientsList = []
+   for i in qList:
+      IngredientsList += Ingredient.objects.filter(name__iexact=i)
+
+   # Make inital set of possible recipes
+   matches = Recipe.objects.filter(ingredients__in=IngredientsList).distinct()
+   # Filter out recipes using ingredients not in IngredientsList
+   for m in matches:
+      m.keep = True # Initally mark to keep
+      for i in m.ingredients.all():
+         if i not in IngredientsList:
+            m.keep = False # mark to delete this recipe
+            break
+   return [m for m in matches if m.keep] # Keep only matches marked keep
+
 
 def searchSimple(request):
    pageSize = 12
@@ -76,3 +89,4 @@ def searchSimple(request):
       'page': page,
       'maxPage': maxPage,
       })
+
