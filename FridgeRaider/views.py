@@ -5,6 +5,8 @@ from django.shortcuts import render_to_response
 from math import ceil
 import inflect
 
+from time import time
+
 def home(request):
    return render_to_response('home.html', {
       'Home': True,
@@ -37,18 +39,31 @@ def getPossibleRecipes( q ):
    qList = [i.strip() for i in q.split(',')]
 
    IngredientsList = []
+   # Benchmark 1: 0.068 sec
    for i in qList:
       IngredientsList += getSimilarIngredients(i)
 
    # Make inital set of possible recipes
+   tic = time()
    matches = Recipe.objects.filter(ingredients__in=IngredientsList).distinct()
+   print 'Inital recipe set: %2.3f sec' % (time()-tic)
+
+   # Filtration step #1: Remove all recipes with more ingredients than provided
+   tic = time()
+   # numBefore = len(matches)
+   m = Recipe.objects.get(title="Fried Plantains")
+   matches = matches.exclude(num_ingredients__gt = len(qList))
+   # print "Filtration step 2: %d matches => %d matches" % (numBefore, len(matches))
+
    # Filter out recipes using ingredients not in IngredientsList
+   tic = time()
    for m in matches:
       m.keep = True # Initally mark to keep
       for i in m.ingredients.all():
          if i not in IngredientsList:
             m.keep = False # mark to delete this recipe
             break
+   print "Filtration step 2: %2.3f sec" % (time()-tic)
    return [m for m in matches if m.keep] # Keep only matches marked keep
 
 def getSimilarIngredients( i ):

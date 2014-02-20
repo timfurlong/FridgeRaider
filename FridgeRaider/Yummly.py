@@ -40,7 +40,8 @@ class Yummly:
 											rating = r['rating'],
 											sourceDisplayName = r['sourceDisplayName'],
 											totalTimeInSeconds = r['totalTimeInSeconds'],
-											imageUrl90=r['imageUrlsBySize']['90'])
+											imageUrl90 = r['imageUrlsBySize']['90'],
+											num_ingredients = len(r['ingredients']))
 			try:
 				recipe.save()
 			except IntegrityError:

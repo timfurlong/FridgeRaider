@@ -1,18 +1,19 @@
 from django.db import models
 
 class Ingredient(models.Model):
-   name = models.CharField(max_length=200, unique=True)
+   name = models.CharField(max_length=200, unique=True, db_index=True)
    def __unicode__(self):
       return self.name
 
 class Recipe(models.Model):
-   title              = models.CharField(max_length=200)
-   ingredients        = models.ManyToManyField(Ingredient)
+   title              = models.CharField(max_length=200, db_index=True)
+   ingredients        = models.ManyToManyField(Ingredient, db_index=True)
    yummlyId           = models.CharField(max_length=2000, unique=True)
    rating             = models.IntegerField()
    sourceDisplayName  = models.CharField(max_length=200)
    totalTimeInSeconds = models.FloatField()
    imageUrl90         = models.CharField(max_length=2000) # De facto max URL length
+   num_ingredients    = models.IntegerField()
 
    def __unicode__(self):
       return self.title
