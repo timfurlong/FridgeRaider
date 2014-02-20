@@ -3,7 +3,7 @@ from FridgeRaider.models import Ingredient, Recipe
 from FridgeRaider.Yummly import Yummly
 from django.shortcuts import render_to_response
 from math import ceil
-
+import inflect
 
 def home(request):
    return render_to_response('home.html', {
@@ -35,10 +35,10 @@ def search(request):
 def getPossibleRecipes( q ):
    '''Get all recipes that use only the ingredients listed in q. q is a comma seperated list of ingredients.'''
    qList = [i.strip() for i in q.split(',')]
-   # Gather ingredients list
+
    IngredientsList = []
    for i in qList:
-      IngredientsList += Ingredient.objects.filter(name__iexact=i)
+      IngredientsList += getSimilarIngredients(i)
 
    # Make inital set of possible recipes
    matches = Recipe.objects.filter(ingredients__in=IngredientsList).distinct()
@@ -51,6 +51,15 @@ def getPossibleRecipes( q ):
             break
    return [m for m in matches if m.keep] # Keep only matches marked keep
 
+def getSimilarIngredients( i ):
+   '''Get all ingredient objects similar to ingredient with name i.
+   For example if i=onion, return ingredient objects with titles [onion, onions, yellow onion, red onion, red onions, etc.]
+   '''
+   p = inflect.engine()
+   IngredientsList = []
+   IngredientsList += Ingredient.objects.filter(name__iendswith=i)
+   IngredientsList += Ingredient.objects.filter(name__iendswith= p.plural(i) )
+   return IngredientsList
 
 def searchSimple(request):
    pageSize = 12

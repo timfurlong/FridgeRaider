@@ -12,17 +12,15 @@ from FridgeRaider.models import Recipe, Ingredient
 
 class TestRecipeLookup(TestCase):
    def setUp(self):
-      i1 = Ingredient.objects.create(name='plantains')
-      i2 = Ingredient.objects.create(name='oil')
-      r  = Recipe.objects.create(title="Fried Plantains",
-                                 rating=0, totalTimeInSeconds=0, yummlyId=0)
-      r.ingredients.add(i1, i2)
-
-      i1 = Ingredient.objects.create(name="onion")
-      i2 = Ingredient.objects.create(name="olive oil")
-      r  = Recipe.objects.create(title="Caramelized Onions",
-                                 rating=0, totalTimeInSeconds=0,yummlyId=1)
-      r.ingredients.add(i1, i2)
+      testRecipes = {
+         'Caramelized Onions': ['onion', 'olive oil'],
+         'Fried Plantains': ['plantains', 'oil'],
+      }
+      for k,v in testRecipes.items():
+         r = Recipe.objects.create(title=k,
+                                   rating=0, totalTimeInSeconds=0, yummlyId=k)
+         for i in v:
+            r.ingredients.add( Ingredient.objects.create(name=i) )
 
    def test_two_given_ingredients(self):
       """
@@ -64,3 +62,18 @@ class TestRecipeLookup(TestCase):
       matches = getPossibleRecipes("PlAntAins, oIl")
       self.assertIn(r, matches)
 
+   def test_plurality_insensitivity(self):
+      '''
+      plurality of the query string should be ignored.
+      '''
+      r = Recipe.objects.get(title="Fried Plantains")
+      matches = getPossibleRecipes("plantain, oil") # rather than plantains
+      self.assertIn(r, matches)
+
+   def test_same_ingredient_ending(self):
+      '''
+      Ingredients of the same ending should be considered matches.
+      '''
+      r = Recipe.objects.get(title="Caramelized Onions")
+      matches = getPossibleRecipes('oil, onion') # rather than olive oil
+      self.assertIn(r, matches)
