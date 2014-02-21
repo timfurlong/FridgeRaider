@@ -80,6 +80,23 @@
                   {% endif %}
                </ul>
 
+               <div id="footer">
+                  <div class="col-md-6">
+                     <p class="text-muted text-left">
+                        Recipe search powered by <a href='http://www.yummly.com/recipes'><img alt='Yummly' src='http://static.yummly.com/api-logo.png'/></a>
+                     </p>
+                  </div>
+                  <div class="col-md-6">
+                     <p class="text-muted text-right">Created by Tim Furlong</p>
+                  </div>
+               </div>
+
+            {% else %}
+               <div class="row row-padded">
+                  <div class="alert alert-danger">
+                     <p>No recipes found for "{{ q }}". Please try again.</p>
+                  </div>
+               </div>
             {% endif %}
          {% endif %}
       </div>

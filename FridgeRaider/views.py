@@ -22,30 +22,31 @@ def search(request):
    pageSize = 12
 
    # Template variable defaults
-   matches = None
-   infoMsg = None
+   matches  = None
+   infoMsg  = None
+
    # Get request
    q    = request.GET.get('q')
    page = request.GET.get('page')
 
    if q: # Search was made
       recipes = getPossibleRecipes(q)
+      if recipes:
+         paginator = Paginator(recipes, pageSize)
+         try:
+            matches = paginator.page(page)
+         except PageNotAnInteger:
+            # If page is not an integer, deliver first page.
+            matches = paginator.page(1)
+         except EmptyPage:
+            # If page is out of range, deliver last page of results.
+            matches = paginator.page(paginator.num_pages)
 
-      paginator = Paginator(recipes, pageSize)
-      try:
-         matches = paginator.page(page)
-      except PageNotAnInteger:
-         # If page is not an integer, deliver first page.
-         matches = paginator.page(1)
-      except EmptyPage:
-         # If page is out of range, deliver last page of results.
-         matches = paginator.page(paginator.num_pages)
-
-      for m in matches:
-         m.imageUrl = m.getImageUrlBySize(230)
-      infoMsg = 'Results %d - %d' % ( matches.start_index(), matches.end_index() )
-      if matches.has_other_pages():
-         infoMsg += ' (out of %d)' % paginator.count
+         for m in matches:
+            m.imageUrl = m.getImageUrlBySize(230)
+         infoMsg = 'Results %d - %d' % ( matches.start_index(), matches.end_index() )
+         if matches.has_other_pages():
+            infoMsg += ' (out of %d)' % paginator.count
    return render_to_response('search.html',{
       'RecipeSearch': True,
       'matches': matches,
@@ -60,32 +61,33 @@ def getPossibleRecipes( q ):
    IngredientsList = []
    for i in qList:
       IngredientsList += getSimilarIngredients(i)
-   ingredIds = ["%d" % i.id for i in IngredientsList]
-   ingredFmt = ("%s," * len(ingredIds))[:-1]
-   matches =  Recipe.objects.raw("""
-         SELECT * FROM
-            (SELECT "FridgeRaider_recipe".id,
-                  "FridgeRaider_recipe".title,
-                  "FridgeRaider_recipe".num_ingredients,
-                  count("matched_recipe_ingredients".ingredient_id) AS num_matched_ingredients
-            FROM "FridgeRaider_recipe"
-            LEFT JOIN
-               (SELECT "FridgeRaider_recipe_ingredients".id, recipe_id, ingredient_id
-               FROM "FridgeRaider_recipe_ingredients"
-               INNER JOIN
-                  (
-                     SELECT * FROM "FridgeRaider_ingredient"
-                     WHERE "FridgeRaider_ingredient"."id"
-                     IN (%s)
-                  )
-                  AS user_ingredients
-               ON user_ingredients.id = "FridgeRaider_recipe_ingredients".ingredient_id)
-               AS matched_recipe_ingredients
-            ON "FridgeRaider_recipe".id = "matched_recipe_ingredients".recipe_id
-            GROUP BY "FridgeRaider_recipe".id) AS match_table
-         WHERE num_matched_ingredients = num_ingredients
-         """ % ingredFmt, ingredIds)
-   return Recipe.objects.filter(pk__in = [m.id for m in matches])
+   if IngredientsList:
+      ingredIds = ["%d" % i.id for i in IngredientsList]
+      ingredFmt = ("%s," * len(ingredIds))[:-1]
+      matches =  Recipe.objects.raw("""
+            SELECT * FROM
+               (SELECT "FridgeRaider_recipe".id,
+                     "FridgeRaider_recipe".title,
+                     "FridgeRaider_recipe".num_ingredients,
+                     count("matched_recipe_ingredients".ingredient_id) AS num_matched_ingredients
+               FROM "FridgeRaider_recipe"
+               LEFT JOIN
+                  (SELECT "FridgeRaider_recipe_ingredients".id, recipe_id, ingredient_id
+                  FROM "FridgeRaider_recipe_ingredients"
+                  INNER JOIN
+                     (
+                        SELECT * FROM "FridgeRaider_ingredient"
+                        WHERE "FridgeRaider_ingredient"."id"
+                        IN (%s)
+                     )
+                     AS user_ingredients
+                  ON user_ingredients.id = "FridgeRaider_recipe_ingredients".ingredient_id)
+                  AS matched_recipe_ingredients
+               ON "FridgeRaider_recipe".id = "matched_recipe_ingredients".recipe_id
+               GROUP BY "FridgeRaider_recipe".id) AS match_table
+            WHERE num_matched_ingredients = num_ingredients
+            """ % ingredFmt, ingredIds)
+      return Recipe.objects.filter(pk__in = [m.id for m in matches])
 
 def getSimilarIngredients( i ):
    '''Get all ingredient objects similar to ingredient with name i.
