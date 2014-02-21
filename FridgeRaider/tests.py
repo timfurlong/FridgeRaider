@@ -18,7 +18,8 @@ class TestRecipeLookup(TestCase):
       }
       for k,v in testRecipes.items():
          r = Recipe.objects.create(title=k,
-                                   rating=0, totalTimeInSeconds=0, yummlyId=k)
+                                   rating=0, totalTimeInSeconds=0, yummlyId=k,
+                                   num_ingredients=len(v))
          for i in v:
             r.ingredients.add( Ingredient.objects.create(name=i) )
 

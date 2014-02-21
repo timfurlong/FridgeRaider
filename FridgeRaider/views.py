@@ -39,32 +39,34 @@ def getPossibleRecipes( q ):
    qList = [i.strip() for i in q.split(',')]
 
    IngredientsList = []
-   # Benchmark 1: 0.068 sec
    for i in qList:
       IngredientsList += getSimilarIngredients(i)
-
-   # Make inital set of possible recipes
-   tic = time()
-   matches = Recipe.objects.filter(ingredients__in=IngredientsList).distinct()
-   print 'Inital recipe set: %2.3f sec' % (time()-tic)
-
-   # Filtration step #1: Remove all recipes with more ingredients than provided
-   tic = time()
-   # numBefore = len(matches)
-   m = Recipe.objects.get(title="Fried Plantains")
-   matches = matches.exclude(num_ingredients__gt = len(qList))
-   # print "Filtration step 2: %d matches => %d matches" % (numBefore, len(matches))
-
-   # Filter out recipes using ingredients not in IngredientsList
-   tic = time()
-   for m in matches:
-      m.keep = True # Initally mark to keep
-      for i in m.ingredients.all():
-         if i not in IngredientsList:
-            m.keep = False # mark to delete this recipe
-            break
-   print "Filtration step 2: %2.3f sec" % (time()-tic)
-   return [m for m in matches if m.keep] # Keep only matches marked keep
+   ingredIds = ["%d" % i.id for i in IngredientsList]
+   ingredFmt = ("%s," * len(ingredIds))[:-1]
+   matches =  Recipe.objects.raw("""
+         SELECT * FROM
+            (SELECT "FridgeRaider_recipe".id,
+                  "FridgeRaider_recipe".title,
+                  "FridgeRaider_recipe".num_ingredients,
+                  count("matched_recipe_ingredients".ingredient_id) AS num_matched_ingredients
+            FROM "FridgeRaider_recipe"
+            LEFT JOIN
+               (SELECT "FridgeRaider_recipe_ingredients".id, recipe_id, ingredient_id
+               FROM "FridgeRaider_recipe_ingredients"
+               INNER JOIN
+                  (
+                     SELECT * FROM "FridgeRaider_ingredient"
+                     WHERE "FridgeRaider_ingredient"."id"
+                     IN (%s)
+                  )
+                  AS user_ingredients
+               ON user_ingredients.id = "FridgeRaider_recipe_ingredients".ingredient_id)
+               AS matched_recipe_ingredients
+            ON "FridgeRaider_recipe".id = "matched_recipe_ingredients".recipe_id
+            GROUP BY "FridgeRaider_recipe".id) AS match_table
+         WHERE num_matched_ingredients = num_ingredients
+         """ % ingredFmt, ingredIds)
+   return Recipe.objects.filter(id__in = [m.id for m in matches])
 
 def getSimilarIngredients( i ):
    '''Get all ingredient objects similar to ingredient with name i.

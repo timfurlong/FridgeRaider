@@ -4,6 +4,7 @@ import json
 from FridgeRaider.models import Ingredient, Recipe
 from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
+
 sys.path.append( '.' )
 
 class Yummly:
@@ -89,7 +90,7 @@ class Yummly:
 
 if __name__ == '__main__':
 	y       = Yummly()
-	y.getRecipes('', numPerRequest=1500,start=0)
+	y.getRecipes('Fried Plantains', numPerRequest=1500,start=0)
 	# res = y.search('',maxResult=10)
 
 	# ingredients = y.getAllowedIngredients()
