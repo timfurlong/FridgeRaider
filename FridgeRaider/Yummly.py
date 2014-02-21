@@ -90,7 +90,8 @@ class Yummly:
 
 if __name__ == '__main__':
 	y       = Yummly()
-	y.getRecipes('Fried Plantains', numPerRequest=1500,start=0)
+	y.getRecipes('Caramelized Onions', numPerRequest=1500,start=0)
+	y.getRecipes('', numPerRequest=1500,start=0)
 	# res = y.search('',maxResult=10)
 
 	# ingredients = y.getAllowedIngredients()
