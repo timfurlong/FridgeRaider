@@ -2,6 +2,7 @@
 from FridgeRaider.models import Ingredient, Recipe
 from FridgeRaider.Yummly import Yummly
 from django.shortcuts import render_to_response
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from math import ceil
 import inflect
 
@@ -19,19 +20,34 @@ def about(request):
 
 def search(request):
    pageSize = 12
-   q = request.GET.get('q')
+
+   # Template variable defaults
+   matches = None
+   infoMsg = None
+   # Get request
+   q    = request.GET.get('q')
+   page = request.GET.get('page')
+
    if q: # Search was made
-      matches = getPossibleRecipes(q)
-      if len(matches) > pageSize:
-         matches = matches[:pageSize]
+      recipes = getPossibleRecipes(q)
+      paginator = Paginator(recipes, pageSize)
+      try:
+         matches = paginator.page(page)
+      except PageNotAnInteger:
+         # If page is not an integer, deliver first page.
+         matches = paginator.page(1)
+      except EmptyPage:
+         # If page is out of range, deliver last page of results.
+         matches = paginator.page(paginator.num_pages)
       for m in matches:
          m.imageUrl = m.getImageUrlBySize(230)
-   else:
-      matches         = None
+      infoMsg = 'Results %d - %d' % ( matches.start_index(), matches.end_index() )
+
    return render_to_response('search.html',{
       'RecipeSearch': True,
       'matches': matches,
       'q': q,
+      'infoMsg': infoMsg,
       })
 
 def getPossibleRecipes( q ):

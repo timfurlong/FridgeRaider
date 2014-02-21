@@ -19,3 +19,7 @@ body {
 .alert-info{
    margin-top: 20px;
 }
+
+#currentPage{
+   margin: 15px;
+}

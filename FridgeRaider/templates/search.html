@@ -5,8 +5,8 @@
    <meta charset="utf-8">
    <meta http-equiv="X-UA-Compatible" content="IE=edge">
    <meta name="viewport" content="width=device-width, initial-scale=1">
-   <meta name="description" content="">
-   <meta name="author" content="">
+   <meta name="description" content="Recipes with only what you already have.">
+   <meta name="author" content="Tim Furlong">
    <link rel="shortcut icon" href="{% static 'assets/FridgeRaiderIcon.ico' %}">
 
    <title>FridgeRaider | Recipe Search</title>
@@ -15,7 +15,7 @@
    <link href="{% static 'bootstrap/bootstrap.min.css'%}" rel="stylesheet">
 
    <!-- Custom styles for this template -->
-   <link href="{% static 'css/home.css' %}" rel="stylesheet">
+   <link href="{% static 'css/search.css' %}" rel="stylesheet">
 
    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
    <!--[if lt IE 9]>
@@ -34,12 +34,22 @@
          <form action="" id='ingredientsForm'>
             <div class="input-group">
                <span class="input-group-addon">Ingredients:</span>
-               <input type="text" name="q" id="IngredientsInput" class="form-control" placeholder="For example: onions, bok choy, coconut milk">
+               {% if q %}
+                  <input type="text" name="q" id="IngredientsInput" class="form-control" placeholder="For example: onions, bok choy, coconut milk" value="{{ q }}">
+               {% else %}
+                  <input type="text" name="q" id="IngredientsInput" class="form-control" placeholder="For example: onions, bok choy, coconut milk">
+               {% endif %}
             </div>
          </form>
 
          {% if q %}
             {% if matches %}
+               {% if infoMsg %}
+                  <div class="alert alert-info">
+                     <p>{{ infoMsg }}</p>
+                  </div>
+               {% endif %}
+
                <div class="row row-padded">
                {%for r in matches %}
                   <div class="col-md-3 recipeDescriptionBox">
@@ -47,14 +57,29 @@
                         <img src="{{ r.imageUrl }}" class="img-rounded">
                      </a>
                      <h3 class="recipeTitle">{{ r.title }}</h3>
-                     <p class="text-muted">{{ r.getIngredientsStr }}</p>
+                     <p class="text-muted">{{ r.getIngredientsStr|truncatechars:110 }}</p>
                   </div>
                   {% if forloop.counter|divisibleby:"4" %}
                      </div>
                      <div class="row row-padded">
                   {% endif %}
                {% endfor %}
-            </div>
+                     </div> {# close the last recipeDescription box #}
+
+               <ul class="pager">
+                  {% if matches.has_previous %}
+                     <li><a href="?q={{ q }}&page={{ matches.previous_page_number }}">Previous</a></li>
+                  {% endif %}
+
+                  <span id="currentPage">
+                     Page {{ matches.number }} of {{ matches.paginator.num_pages }}
+                  </span>
+
+                  {% if matches.has_next %}
+                     <li><a href="?q={{ q }}&page={{ matches.next_page_number }}">Next</a></li>
+                  {% endif %}
+               </ul>
+
             {% endif %}
          {% endif %}
       </div>
@@ -62,5 +87,3 @@
    </div>{# end .container #}
 </body>
 </html>
-
-{# Some filters take arguments. A filter argument looks like this: {{ bio|truncatewords:30 }}. This will display the first 30 words of the bio variable. #}
