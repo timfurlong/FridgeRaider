@@ -66,7 +66,7 @@ def getPossibleRecipes( q ):
             GROUP BY "FridgeRaider_recipe".id) AS match_table
          WHERE num_matched_ingredients = num_ingredients
          """ % ingredFmt, ingredIds)
-   return Recipe.objects.filter(id__in = [m.id for m in matches])
+   return Recipe.objects.filter(pk__in = [m.id for m in matches])
 
 def getSimilarIngredients( i ):
    '''Get all ingredient objects similar to ingredient with name i.
