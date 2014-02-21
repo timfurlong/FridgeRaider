@@ -30,6 +30,7 @@ def search(request):
 
    if q: # Search was made
       recipes = getPossibleRecipes(q)
+
       paginator = Paginator(recipes, pageSize)
       try:
          matches = paginator.page(page)
@@ -39,10 +40,12 @@ def search(request):
       except EmptyPage:
          # If page is out of range, deliver last page of results.
          matches = paginator.page(paginator.num_pages)
+
       for m in matches:
          m.imageUrl = m.getImageUrlBySize(230)
       infoMsg = 'Results %d - %d' % ( matches.start_index(), matches.end_index() )
-
+      if matches.has_other_pages():
+         infoMsg += ' (out of %d)' % paginator.count
    return render_to_response('search.html',{
       'RecipeSearch': True,
       'matches': matches,

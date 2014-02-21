@@ -68,7 +68,7 @@
 
                <ul class="pager">
                   {% if matches.has_previous %}
-                     <li><a href="?q={{ q }}&page={{ matches.previous_page_number }}">Previous</a></li>
+                     <li><a href="?page={{ matches.previous_page_number }}&q={{ q }}">Previous</a></li>
                   {% endif %}
 
                   <span id="currentPage">
@@ -76,7 +76,7 @@
                   </span>
 
                   {% if matches.has_next %}
-                     <li><a href="?q={{ q }}&page={{ matches.next_page_number }}">Next</a></li>
+                     <li><a href="?page={{ matches.next_page_number }}&q={{ q }}">Next</a></li>
                   {% endif %}
                </ul>
 
