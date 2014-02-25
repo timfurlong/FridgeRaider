@@ -57,6 +57,7 @@ def search(request):
 def getPossibleRecipes( q ):
    '''Get all recipes that use only the ingredients listed in q. q is a comma seperated list of ingredients.'''
    qList = [i.strip() for i in q.split(',')]
+   qList = [i for i in qList if i!='']
 
    IngredientsList = []
    for i in qList:

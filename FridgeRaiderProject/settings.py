@@ -167,8 +167,12 @@ LOGGING = {
 # From https://devcenter.heroku.com/articles/getting-started-with-django
 # ==============================================================================
 if 'DATABASE_URL' in os.environ:
-    '''Heroku specific setup. use dj_database_url to set up database '''
-    # Parse database configuration from $DATABASE_URL
+    '''Heroku specific setup. '''
+    # Turn off debug mode
+    # DEBUG = False
+    # TEMPLATE_DEBUG = DEBUG
+
+    # use dj_database_url to set up database. Parse database configuration from $DATABASE_URL
     DATABASES['default'] =  dj_database_url.config()
 
     # Honor the 'X-Forwarded-Proto' header for request.is_secure()

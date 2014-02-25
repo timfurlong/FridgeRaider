@@ -22,7 +22,7 @@ class Recipe(models.Model):
       return self.imageUrl90.replace('s90-c','s%s-c' % size)
 
    def getYummlyUrl(self):
-      return "http://www.yummly.com/recipe/%s"%self.yummlyId
+      return "http://www.yummly.com/recipe/external/%s"%self.yummlyId
 
    def getIngredientsStr(self):
       return ", ".join([i.name for i in self.ingredients.all()])
