@@ -26,3 +26,18 @@ class Recipe(models.Model):
 
    def getIngredientsStr(self):
       return ", ".join([i.name for i in self.ingredients.all()])
+
+   def getIngredientOwnership(self, ownedIngredients):
+      has, needs = [], []
+      for ingred in self.ingredients.all():
+         if ingred in ownedIngredients:
+            has.append( ingred )
+         else:
+            needs.append( ingred )
+      self.has, self.needs = has, needs
+
+   def hasIngredientStr(self):
+      return ", ".join([i.name for i in self.has])
+
+   def needsIngredientStr(self):
+      return ", ".join([i.name for i in self.needs])

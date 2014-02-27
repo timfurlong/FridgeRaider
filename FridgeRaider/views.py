@@ -26,11 +26,16 @@ def search(request):
    infoMsg  = None
 
    # Get request
-   q    = request.GET.get('q')
-   page = request.GET.get('page')
+   q     = request.GET.get('q')
+   page  = request.GET.get('page')
+   extra = request.GET.get('extra')
+   try:
+      extra = int( extra )
+   except ValueError:
+      extra = 0
 
    if q: # Search was made
-      recipes = getPossibleRecipes(q)
+      recipes, IngredientsList = getPossibleRecipes(q, numExtraIngred=extra)
       if recipes:
          paginator = Paginator(recipes, pageSize)
          try:
@@ -44,6 +49,7 @@ def search(request):
 
          for m in matches:
             m.imageUrl = m.getImageUrlBySize(230)
+            m.getIngredientOwnership( IngredientsList )
          infoMsg = 'Results %d - %d' % ( matches.start_index(), matches.end_index() )
          if matches.has_other_pages():
             infoMsg += ' (out of %d)' % paginator.count
@@ -52,17 +58,17 @@ def search(request):
       'matches': matches,
       'q': q,
       'infoMsg': infoMsg,
+      'extra': extra,
       })
 
-def getPossibleRecipes( q ):
+def getPossibleRecipes( q, numExtraIngred = 0 ):
    '''Get all recipes that use only the ingredients listed in q. q is a comma seperated list of ingredients.'''
-   qList = [i.strip() for i in q.split(',')]
-   qList = [i for i in qList if i!='']
-
-   IngredientsList = []
-   for i in qList:
-      IngredientsList += getSimilarIngredients(i)
-   if IngredientsList:
+   if q:
+      qList = [i.strip() for i in q.split(',')]
+      qList = [i for i in qList if i!='']
+      IngredientsList = []
+      for i in qList:
+         IngredientsList += getSimilarIngredients(i)
       ingredIds = ["%d" % i.id for i in IngredientsList]
       ingredFmt = ("%s," * len(ingredIds))[:-1]
       matches =  Recipe.objects.raw("""
@@ -86,9 +92,10 @@ def getPossibleRecipes( q ):
                   AS matched_recipe_ingredients
                ON "FridgeRaider_recipe".id = "matched_recipe_ingredients".recipe_id
                GROUP BY "FridgeRaider_recipe".id) AS match_table
-            WHERE num_matched_ingredients = num_ingredients
-            """ % ingredFmt, ingredIds)
-      return Recipe.objects.filter(pk__in = [m.id for m in matches])
+            WHERE (num_matched_ingredients >= num_ingredients - %d)
+               AND (num_matched_ingredients > (num_ingredients/2));
+            """ % (ingredFmt, numExtraIngred), ingredIds)
+      return Recipe.objects.filter(pk__in = [m.id for m in matches]), IngredientsList
 
 def getSimilarIngredients( i ):
    '''Get all ingredient objects similar to ingredient with name i.

@@ -11,8 +11,11 @@
 
    <title>FridgeRaider | Recipe Search</title>
 
-   <!-- Bootstrap core CSS -->
+   <!-- Bootstrap Core CSS -->
    <link href="{% static 'bootstrap/bootstrap.min.css'%}" rel="stylesheet">
+
+   <!-- Custom select bootstrap plugin -->
+   <link href="{% static 'bootstrap/bootstrap-select.min.css' %}" rel='stylesheet'>
 
    <!-- Custom styles for this template -->
    <link href="{% static 'css/search.css' %}" rel="stylesheet">
@@ -31,33 +34,64 @@
    <div class="container">
 
       <div class="starter-template">
+
+         {# User Input Form #}
          <form action="" id='ingredientsForm'>
-            <div class="input-group">
-               <span class="input-group-addon">Ingredients:</span>
-               {% if q %}
-                  <input type="text" name="q" id="IngredientsInput" class="form-control" placeholder="For example: onions, bok choy, coconut milk" value="{{ q }}">
-               {% else %}
-                  <input type="text" name="q" id="IngredientsInput" class="form-control" placeholder="For example: onions, bok choy, coconut milk">
-               {% endif %}
+
+            {# Search Box #}
+            <div class="row">
+               <div class="input-group">
+                  <span class="input-group-addon">Ingredients:</span>
+                  {% if q %}
+                     <input type="text" name="q" id="IngredientsInput" class="form-control" placeholder="For example: onions, bok choy, coconut milk" value="{{ q }}">
+                  {% else %}
+                     <input type="text" name="q" id="IngredientsInput" class="form-control" placeholder="For example: onions, bok choy, coconut milk">
+                  {% endif %}
+
+                  <div class="input-group-btn">
+                     <button class="btn btn-default" type="button submit">&raquo;</button>
+                  </div>
+               </div>
             </div>
+
+            {# Number of extra ingredients #}
+            <div class="row input-row">
+               <select class="selectpicker input-sm show-tick" name="extra">
+                  <option value="0" {%ifequal extra 0%}selected="selected"{%endifequal%} title="No extra ingredients">0</option>
+                  <option value="1" {%ifequal extra 1%}selected="selected"{%endifequal%} title="1 extra ingredient">1</option>
+                  <option value="2" {%ifequal extra 2%}selected="selected"{%endifequal%} title="2 extra ingredients">2</option>
+                  <option value="3" {%ifequal extra 3%}selected="selected"{%endifequal%} title="3 extra ingredients">3</option>
+               </select>
+            </div>
+
          </form>
 
          {% if q %}
             {% if matches %}
+
+               {# Search Info Message #}
                {% if infoMsg %}
                   <div class="alert alert-info">
                      <p>{{ infoMsg }}</p>
                   </div>
                {% endif %}
 
+               {# Search Results #}
                <div class="row row-padded">
-               {%for r in matches %}
+               {% for r in matches %}
                   <div class="col-md-3 recipeDescriptionBox">
                      <a href="{{ r.getYummlyUrl }}" target="_blank">
                         <img src="{{ r.imageUrl }}" class="img-rounded">
                      </a>
                      <h3 class="recipeTitle">{{ r.title }}</h3>
-                     <p class="text-muted">{{ r.getIngredientsStr|truncatechars:110 }}</p>
+                     <p class="text-muted">
+                        {{ r.hasIngredientStr|truncatechars:110 }}
+                     </p>
+                     {% if r.needs %}
+                        <p class="text-muted">
+                           <em>+ {{ r.needsIngredientStr }}</em>
+                        </p>
+                     {% endif %}
                   </div>
                   {% if forloop.counter|divisibleby:"4" %}
                      </div>
@@ -66,6 +100,7 @@
                {% endfor %}
                      </div> {# close the last recipeDescription box #}
 
+               {# Page Control #}
                <ul class="pager">
                   {% if matches.has_previous %}
                      <li><a href="?page={{ matches.previous_page_number }}&q={{ q }}">Previous</a></li>
@@ -80,6 +115,7 @@
                   {% endif %}
                </ul>
 
+               {# Footer #}
                <div id="footer">
                   <div class="col-md-6">
                      <p class="text-muted text-left">
@@ -102,5 +138,17 @@
       </div>
 
    </div>{# end .container #}
+
+
+   <!-- JavaScript
+   ================================================== -->
+   <!-- Placed at the end of the document so the pages load faster -->
+   <script src="{% static 'js/jquery-1.11.0.min.js' %}"></script>
+   <script src="{% static 'bootstrap/bootstrap.min.js' %}"></script>
+   <!-- Custom select bootstrap plugin -->
+   <script type="text/javascript" src="{% static 'bootstrap/bootstrap-select.min.js' %}"></script>
+   <!-- Custom jQuery for this template -->
+   <script src="{% static 'js/search.js' %}"></script>
+
 </body>
 </html>

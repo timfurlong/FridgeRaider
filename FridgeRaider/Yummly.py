@@ -11,7 +11,6 @@ class Yummly:
 
 	APP_ID  = '75f39ebf'
 	APP_KEY = '8678ce0138b3cc250618be63722467d6'
-	DB_PATH = 'FridgeRaider.sqlite'
 
 	def getAllowedIngredients(self):
 		res = requests.get("http://api.yummly.com/v1/api/metadata/ingredient",
@@ -71,10 +70,12 @@ class Yummly:
 			start += numPerRequest
 			page += 1
 
-	def search(self, IngredientsList, maxResult = 12, start=0, attempt_no=1):
+	def search(self, IngredientsList, maxResult = 12, start=0, attemptNum=1, requirePictures=False):
+		requirePictures = str( requirePictures ).lower()
+
 		res = requests.get( "http://api.yummly.com/v1/api/recipes",
 								params={ 'q': IngredientsList,
-													'requirePictures': 'true',
+													'requirePictures': requirePictures,
 													'maxResult': maxResult,
 													'start': start},
 								headers={'X-Yummly-App-ID':self.APP_ID,
@@ -83,9 +84,9 @@ class Yummly:
 		try:
 			res = res.json()
 		except (NameError,ValueError):
-			if attempt_no > 3:
+			if attemptNum > 3:
 				return None
-			res = self.search(IngredientsList, maxResult,start, attempt_no+1)
+			res = self.search(IngredientsList, maxResult,start, attemptNum+1)
 		return res
 
 if __name__ == '__main__':

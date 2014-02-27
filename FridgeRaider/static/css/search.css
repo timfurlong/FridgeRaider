@@ -17,9 +17,15 @@ body {
 }
 
 .alert-info{
+   padding: 10px;
    margin-top: 20px;
 }
 
 #currentPage{
    margin: 15px;
+}
+
+.input-row {
+   text-align: left;
+   padding-top: 10px;
 }

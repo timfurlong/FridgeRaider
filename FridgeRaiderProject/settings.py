@@ -95,9 +95,9 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware', # manages sessions across requests.
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware', # associates users with requests using sessions.
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -116,8 +116,8 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
+    'django.contrib.auth', # the core of the authentication framework, and its default models.
+    'django.contrib.contenttypes', # allows permissions to be associated with models you create.
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
