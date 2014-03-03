@@ -1,12 +1,9 @@
-# All Django wants is that HttpResponse. Or an exception.
 from FridgeRaider.models import Ingredient, Recipe
 from FridgeRaider.Yummly import Yummly
 from django.shortcuts import render_to_response
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from math import ceil
 import inflect
-
-from time import time
 
 def home(request):
    return render_to_response('home.html', {
@@ -35,7 +32,8 @@ def search(request):
       extra = 0
 
    if q: # Search was made
-      recipes, IngredientsList = getPossibleRecipes(q, numExtraIngred=extra)
+      IngredientsList = getIngredientsList( q )
+      recipes = getPossibleRecipes(IngredientsList, numExtraIngred=extra)
       if recipes:
          paginator = Paginator(recipes, pageSize)
          try:
@@ -61,16 +59,17 @@ def search(request):
       'extra': extra,
       })
 
-def getPossibleRecipes( q, numExtraIngred = 0 ):
+def getIngredientsList(q):
+   qList = [i.strip() for i in q.split(',')]
+   qList = [i for i in qList if i!='']
+   IngredientsList = []
+   for i in qList:
+      IngredientsList += getSimilarIngredients(i)
+   return IngredientsList
+
+def getPossibleRecipes( IngredientsList, numExtraIngred = 0 ):
    '''Get all recipes that use only the ingredients listed in q. q is a comma seperated list of ingredients.'''
-   if q:
-      qList = [i.strip() for i in q.split(',')]
-      qList = [i for i in qList if i!='']
-      IngredientsList = []
-      for i in qList:
-         IngredientsList += getSimilarIngredients(i)
-      if not IngredientsList:
-         return None, IngredientsList
+   if IngredientsList:
       ingredIds = ["%d" % i.id for i in IngredientsList]
       ingredFmt = ("%s," * len(ingredIds))[:-1]
       subquery = """ SELECT * FROM "FridgeRaider_ingredient"
@@ -93,9 +92,8 @@ def getPossibleRecipes( q, numExtraIngred = 0 ):
                GROUP BY "FridgeRaider_recipe".id) AS match_table
             WHERE (num_matched_ingredients >= num_ingredients - %s)
                AND (num_matched_ingredients > (num_ingredients/2));"""
-      print '\n%s\n' % query
-      matches =  Recipe.objects.raw(query, [ingredIds] + [numExtraIngred] )
-      return Recipe.objects.filter(pk__in = [m.id for m in matches]), IngredientsList
+      matches =  Recipe.objects.raw(query, ingredIds + [numExtraIngred] )
+      return Recipe.objects.filter(pk__in = [m.id for m in matches])
 
 def getSimilarIngredients( i ):
    '''Get all ingredient objects similar to ingredient with name i.

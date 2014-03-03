@@ -7,7 +7,7 @@ Replace this with more appropriate tests for your application.
 
 from django.test import TestCase
 from django.test.client import Client
-from FridgeRaider.views import getPossibleRecipes
+from FridgeRaider.views import getPossibleRecipes, getIngredientsList
 from FridgeRaider.models import Recipe, Ingredient
 
 class TestRecipeLookup(TestCase):
@@ -29,7 +29,8 @@ class TestRecipeLookup(TestCase):
       least the recipe Fried Plantains"
       """
       r = Recipe.objects.get(title="Fried Plantains")
-      matches = getPossibleRecipes("plantains, oil")[0]
+      ingreds = getIngredientsList("plantains, oil")
+      matches = getPossibleRecipes( ingreds )
       self.assertIn(r, matches)
 
    def test_three_given_ingredients(self):
@@ -38,16 +39,19 @@ class TestRecipeLookup(TestCase):
       the recipe Fried Plantains
       '''
       r = Recipe.objects.get(title="Fried Plantains")
-      self.assertIn(r, getPossibleRecipes("plantains, oil, onion")[0] )
+      ingreds = getIngredientsList( "plantains, oil, onion" )
+      self.assertIn(r, getPossibleRecipes(ingreds) )
 
       # order should not matter
-      self.assertIn(r, getPossibleRecipes("oil,plantains, onion")[0] )
+      ingreds = getIngredientsList( "oil,plantains, onion" )
+      self.assertIn(r, getPossibleRecipes(ingreds) )
 
    def test_four_given_ingredients(self):
       '''
       Providing "onion, oil, plantains, olive oil" should return recipes Fried Plantains and Caramelized Onions
       '''
-      matches = getPossibleRecipes("onion, oil, plantains, olive oil")[0]
+      ingreds = getIngredientsList( "onion, oil, plantains, olive oil" )
+      matches = getPossibleRecipes( ingreds )
 
       r = Recipe.objects.get(title="Fried Plantains")
       self.assertIn(r, matches)
@@ -60,7 +64,8 @@ class TestRecipeLookup(TestCase):
       tests to make sure ingredients searches are case insensitive.
       '''
       r = Recipe.objects.get(title="Fried Plantains")
-      matches = getPossibleRecipes("PlAntAins, oIl")[0]
+      ingreds = getIngredientsList( "PlAntAins, oIl" )
+      matches = getPossibleRecipes(ingreds)
       self.assertIn(r, matches)
 
    def test_plurality_insensitivity(self):
@@ -68,7 +73,8 @@ class TestRecipeLookup(TestCase):
       plurality of the query string should be ignored.
       '''
       r = Recipe.objects.get(title="Fried Plantains")
-      matches = getPossibleRecipes("plantain, oil")[0] # rather than plantains
+      ingreds = getIngredientsList( "plantain, oil" )
+      matches = getPossibleRecipes(ingreds) # rather than plantains
       self.assertIn(r, matches)
 
    def test_same_ingredient_ending(self):
@@ -76,5 +82,6 @@ class TestRecipeLookup(TestCase):
       Ingredients of the same ending should be considered matches.
       '''
       r = Recipe.objects.get(title="Caramelized Onions")
-      matches = getPossibleRecipes('oil, onion')[0] # rather than olive oil
+      ingreds = getIngredientsList( 'oil, onion' )
+      matches = getPossibleRecipes(ingreds) # rather than olive oil
       self.assertIn(r, matches)
