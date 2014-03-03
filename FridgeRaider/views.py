@@ -18,22 +18,27 @@ def about(request):
 def search(request):
    pageSize = 12
 
-   # Template variable defaults
-   matches  = None
-   infoMsg  = None
-
    # Get request
-   q     = request.GET.get('q')
-   page  = request.GET.get('page')
-   extra = request.GET.get('extra')
-   try:
-      extra = int( extra )
-   except ValueError:
-      extra = 0
+   q          = request.GET.get('q')
+   page       = request.GET.get('page')
+   extra      = request.GET.get('extra')
+   minIngreds = request.GET.get('min')
 
+   extra      = intConv(extra, 0)
+   minIngreds = intConv(minIngreds, 0)
+
+   tmplVars =  {'RecipeSearch': True,
+                'q' : q,
+                'extra' : extra,
+                'min': minIngreds,} # inital template dictionary
    if q: # Search was made
-      IngredientsList = getIngredientsList( q )
-      recipes = getPossibleRecipes(IngredientsList, numExtraIngred=extra)
+      qList = [i.strip() for i in q.split(',')]
+      qList = [i for i in qList if i!='']
+      if len(qList) < 5:
+         tmplVars['errorMsg'] = "Please provide at least 5 ingredients"
+         return render_to_response('search.html', tmplVars)
+      IngredientsList = getIngredientsList( qList )
+      recipes = getPossibleRecipes(IngredientsList, extra, minIngreds)
       if recipes:
          paginator = Paginator(recipes, pageSize)
          try:
@@ -44,30 +49,29 @@ def search(request):
          except EmptyPage:
             # If page is out of range, deliver last page of results.
             matches = paginator.page(paginator.num_pages)
-
          for m in matches:
             m.imageUrl = m.getImageUrlBySize(230)
             m.getIngredientOwnership( IngredientsList )
-         infoMsg = 'Results %d - %d' % ( matches.start_index(), matches.end_index() )
+         tmplVars['matches'] = matches
+
+         tmplVars['infoMsg'] = 'Results %d - %d' % ( matches.start_index(),
+                                                         matches.end_index() )
          if matches.has_other_pages():
-            infoMsg += ' (out of %d)' % paginator.count
-   return render_to_response('search.html',{
-      'RecipeSearch': True,
-      'matches': matches,
-      'q': q,
-      'infoMsg': infoMsg,
-      'extra': extra,
-      })
+            tmplVars['infoMsg'] += ' (out of %d)' % paginator.count
+   return render_to_response('search.html', tmplVars)
 
 def getIngredientsList(q):
-   qList = [i.strip() for i in q.split(',')]
-   qList = [i for i in qList if i!='']
+   if type(q) == list:
+      qList = q
+   else:
+      qList = [i.strip() for i in q.split(',')]
+      qList = [i for i in qList if i!='']
    IngredientsList = []
    for i in qList:
       IngredientsList += getSimilarIngredients(i)
    return IngredientsList
 
-def getPossibleRecipes( IngredientsList, numExtraIngred = 0 ):
+def getPossibleRecipes( IngredientsList, numExtraIngred=0,minIngreds=0 ):
    '''Get all recipes that use only the ingredients listed in q. q is a comma seperated list of ingredients.'''
    if IngredientsList:
       ingredIds = ["%d" % i.id for i in IngredientsList]
@@ -91,8 +95,9 @@ def getPossibleRecipes( IngredientsList, numExtraIngred = 0 ):
                ON "FridgeRaider_recipe".id = "matched_recipe_ingredients".recipe_id
                GROUP BY "FridgeRaider_recipe".id) AS match_table
             WHERE (num_matched_ingredients >= num_ingredients - %s)
-               AND (num_matched_ingredients > (num_ingredients/2));"""
-      matches =  Recipe.objects.raw(query, ingredIds + [numExtraIngred] )
+               AND (num_matched_ingredients > (num_ingredients/2))
+               AND (num_ingredients > %s);"""
+      matches =  Recipe.objects.raw(query, ingredIds + [numExtraIngred, minIngreds] )
       return Recipe.objects.filter(pk__in = [m.id for m in matches])
 
 def getSimilarIngredients( i ):
@@ -104,6 +109,14 @@ def getSimilarIngredients( i ):
    IngredientsList += Ingredient.objects.filter(name__iendswith=i)
    IngredientsList += Ingredient.objects.filter(name__iendswith= p.plural(i) )
    return IngredientsList
+
+def intConv(num, default):
+   try:
+      return int(num)
+   except ValueError:
+      return default
+   except TypeError:
+      return default
 
 def searchSimple(request):
    pageSize = 12
@@ -142,4 +155,3 @@ def searchSimple(request):
       'page': page,
       'maxPage': maxPage,
       })
-

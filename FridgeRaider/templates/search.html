@@ -54,14 +54,32 @@
                </div>
             </div>
 
-            {# Number of extra ingredients #}
+            {# Second row of search parameters #}
             <div class="row input-row">
-               <select class="selectpicker input-sm show-tick" name="extra">
-                  <option value="0" {%ifequal extra 0%}selected="selected"{%endifequal%} title="No extra ingredients">0</option>
-                  <option value="1" {%ifequal extra 1%}selected="selected"{%endifequal%} title="1 extra ingredient">1</option>
-                  <option value="2" {%ifequal extra 2%}selected="selected"{%endifequal%} title="2 extra ingredients">2</option>
-                  <option value="3" {%ifequal extra 3%}selected="selected"{%endifequal%} title="3 extra ingredients">3</option>
-               </select>
+               <table><tr>
+                  <td>Number of extra ingredients:</td>
+                  <td>
+                     <select class="selectpicker input-sm show-tick" name="extra" data-width="auto">
+                        <option value="0" {%ifequal extra 0%}selected="selected"{%endifequal%}>0</option>
+                        <option value="1" {%ifequal extra 1%}selected="selected"{%endifequal%}>1</option>
+                        <option value="2" {%ifequal extra 2%}selected="selected"{%endifequal%}>2</option>
+                        <option value="3" {%ifequal extra 3%}selected="selected"{%endifequal%}>3</option>
+                     </select>
+                  </td>
+
+                  <td>Minimum number of ingredients:</td>
+                  <td>
+                     <select class="selectpicker input-sm show-tick" name="min" data-width="auto">
+                        <option value="1" {%ifequal min 0%}selected="selected"{%endifequal%} title="No minimum">No minimum</option>
+                        <option value="2" {%ifequal min 2%}selected="selected"{%endifequal%}>2</option>
+                        <option value="3" {%ifequal min 3%}selected="selected"{%endifequal%}>3</option>
+                        <option value="4" {%ifequal min 4%}selected="selected"{%endifequal%}>4</option>
+                        <option value="5" {%ifequal min 5%}selected="selected"{%endifequal%}>5</option>
+                        <option value="6" {%ifequal min 6%}selected="selected"{%endifequal%}>6</option>
+                        <option value="7" {%ifequal min 7%}selected="selected"{%endifequal%}>7</option>
+                     </select>
+                  </td>
+               </tr></table>
             </div>
 
          </form>
@@ -124,6 +142,13 @@
                   </div>
                   <div class="col-md-6">
                      <p class="text-muted text-right">Created by Tim Furlong</p>
+                  </div>
+               </div>
+
+            {% elif errorMsg %}
+               <div class="row row-padded">
+                  <div class="alert alert-danger">
+                     <p>{{ errorMsg }}</p>
                   </div>
                </div>
 
