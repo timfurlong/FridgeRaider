@@ -69,11 +69,15 @@ def getPossibleRecipes( q, numExtraIngred = 0 ):
       IngredientsList = []
       for i in qList:
          IngredientsList += getSimilarIngredients(i)
+      if not IngredientsList:
+         return None, IngredientsList
       ingredIds = ["%d" % i.id for i in IngredientsList]
       ingredFmt = ("%s," * len(ingredIds))[:-1]
-      matches =  Recipe.objects.raw("""
-            SELECT * FROM
-               (SELECT "FridgeRaider_recipe".id,
+      subquery = """ SELECT * FROM "FridgeRaider_ingredient"
+                     WHERE "FridgeRaider_ingredient"."id"
+                     IN (%s)""" % ingredFmt
+      query = """SELECT * FROM
+                 (SELECT "FridgeRaider_recipe".id,
                      "FridgeRaider_recipe".title,
                      "FridgeRaider_recipe".num_ingredients,
                      count("matched_recipe_ingredients".ingredient_id) AS num_matched_ingredients
@@ -81,20 +85,16 @@ def getPossibleRecipes( q, numExtraIngred = 0 ):
                LEFT JOIN
                   (SELECT "FridgeRaider_recipe_ingredients".id, recipe_id, ingredient_id
                   FROM "FridgeRaider_recipe_ingredients"
-                  INNER JOIN
-                     (
-                        SELECT * FROM "FridgeRaider_ingredient"
-                        WHERE "FridgeRaider_ingredient"."id"
-                        IN (%s)
-                     )
+                  INNER JOIN (""" + subquery + """)
                      AS user_ingredients
                   ON user_ingredients.id = "FridgeRaider_recipe_ingredients".ingredient_id)
                   AS matched_recipe_ingredients
                ON "FridgeRaider_recipe".id = "matched_recipe_ingredients".recipe_id
                GROUP BY "FridgeRaider_recipe".id) AS match_table
-            WHERE (num_matched_ingredients >= num_ingredients - %d)
-               AND (num_matched_ingredients > (num_ingredients/2));
-            """ % (ingredFmt, numExtraIngred), ingredIds)
+            WHERE (num_matched_ingredients >= num_ingredients - %s)
+               AND (num_matched_ingredients > (num_ingredients/2));"""
+      print '\n%s\n' % query
+      matches =  Recipe.objects.raw(query, [ingredIds] + [numExtraIngred] )
       return Recipe.objects.filter(pk__in = [m.id for m in matches]), IngredientsList
 
 def getSimilarIngredients( i ):
