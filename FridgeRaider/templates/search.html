@@ -7,15 +7,16 @@
    <meta name="viewport" content="width=device-width, initial-scale=1">
    <meta name="description" content="Recipes with only what you already have.">
    <meta name="author" content="Tim Furlong">
-   <link rel="shortcut icon" href="{% static 'assets/FridgeRaiderIcon.ico' %}">
+   <link rel="shortcut icon" href="{% static 'img/FridgeRaiderIcon.ico' %}">
 
    <title>FridgeRaider | Recipe Search</title>
 
    <!-- Bootstrap Core CSS -->
    <link href="{% static 'bootstrap/bootstrap.min.css'%}" rel="stylesheet">
 
-   <!-- Custom select bootstrap plugin -->
-   <link href="{% static 'bootstrap/bootstrap-select.min.css' %}" rel='stylesheet'>
+   <!-- Custom bootstrap plugins -->
+   <link href="{% static 'css/bootstrap-select.min.css' %}" rel='stylesheet'>
+
 
    <!-- Custom styles for this template -->
    <link href="{% static 'css/search.css' %}" rel="stylesheet">
@@ -37,6 +38,30 @@
 
          {# User Input Form #}
          <form action="" id='ingredientsForm'>
+            {% if qList %}
+               <div class="row"><div class="col-md-3">
+                  <table class="table table-striped table-hover table-condensed"
+                         style="text-align: left;">
+                     <thead>
+                        <tr>
+                           <th>#</th>
+                           <th>Use?</th>
+                           <th>Ingredient</th>
+                        </tr>
+                     </thead>
+
+                     <tbody>
+                        {% for i in qList %}
+                           <tr>
+                              <td>{{ forloop.counter }}</td>
+                              <td><input type="checkbox"></td>
+                              <td>{{ i }}</td>
+                           </tr>
+                        {% endfor %}
+                     </tbody>
+                  </table>
+               </div></div>
+            {% endif %}
 
             {# Search Box #}
             <div class="row">
@@ -70,7 +95,7 @@
                   <td>Minimum number of ingredients:</td>
                   <td>
                      <select class="selectpicker input-sm show-tick" name="min" data-width="auto">
-                        <option value="1" {%ifequal min 0%}selected="selected"{%endifequal%} title="No minimum">No minimum</option>
+                        <option value="1" {%ifequal min 0%}selected="selected"{%endifequal%}>None</option>
                         <option value="2" {%ifequal min 2%}selected="selected"{%endifequal%}>2</option>
                         <option value="3" {%ifequal min 3%}selected="selected"{%endifequal%}>3</option>
                         <option value="4" {%ifequal min 4%}selected="selected"{%endifequal%}>4</option>
@@ -116,7 +141,7 @@
                      <div class="row row-padded">
                   {% endif %}
                {% endfor %}
-                     </div> {# close the last recipeDescription box #}
+                     </div> {# close the last row #}
 
                {# Page Control #}
                <ul class="pager">
@@ -170,8 +195,8 @@
    <!-- Placed at the end of the document so the pages load faster -->
    <script src="{% static 'js/jquery-1.11.0.min.js' %}"></script>
    <script src="{% static 'bootstrap/bootstrap.min.js' %}"></script>
-   <!-- Custom select bootstrap plugin -->
-   <script type="text/javascript" src="{% static 'bootstrap/bootstrap-select.min.js' %}"></script>
+   <!-- Custom bootstrap plugins -->
+   <script type="text/javascript" src="{% static 'js/bootstrap-select.min.js' %}"></script>
    <!-- Custom jQuery for this template -->
    <script src="{% static 'js/search.js' %}"></script>
 

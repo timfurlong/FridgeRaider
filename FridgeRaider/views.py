@@ -15,6 +15,44 @@ def about(request):
       'About':True,
       })
 
+def searchSimple(request):
+   pageSize = 12
+   q        = request.GET.get('IngredientsList')
+   page     = request.GET.get('page')
+   if not page:
+      page = '1'
+   if q:
+      start = (int(page)-1)*pageSize
+      res = Yummly().search(q, maxResult=pageSize, start=start)
+      maxPage = ceil( float(res['totalMatchCount']) / float(pageSize) )
+      if start > res['totalMatchCount']:
+         errorMsg    = 'Page #%s exceeds the total number of results' % page
+         infoMsg     = None
+         matches     = []
+      else:
+         matches = res['matches']
+         infoMsg = 'Results %d - %d' % ( start+1, start+1+pageSize )
+         for r in matches:
+            r['imageUrlsBySize']['230'] = r['imageUrlsBySize']['90'].replace('s90-c','s230-c')
+            r['yummlyUrl'] = "http://www.yummly.com/recipe/%s"%r['id']
+            r['ingredientsStr'] = ', '.join( r['ingredients'] )
+         else:
+            errorMsg = 'No recipes found for %s. Please try again.' % q
+   else:
+      matches     = None
+      errorMsg    = None
+      infoMsg     = None
+      maxPage     = None
+   return render_to_response('searchSimple.html',{
+      'RecipeSearch' : True,
+      'matches' : matches,
+      'q': q,
+      'errorMsg': errorMsg,
+      'infoMsg': infoMsg,
+      'page': page,
+      'maxPage': maxPage,
+      })
+
 def search(request):
    pageSize = 12
 
@@ -30,13 +68,21 @@ def search(request):
    tmplVars =  {'RecipeSearch': True,
                 'q' : q,
                 'extra' : extra,
-                'min': minIngreds,} # inital template dictionary
+                'min': minIngreds,} # initial template dictionary
    if q: # Search was made
       qList = [i.strip() for i in q.split(',')]
       qList = [i for i in qList if i!='']
+      if 'ingreds' in request.session:
+         # Some ingredients have already been specified in this session
+         qList += request.session['ingreds']
+      qList = list( set(qList) ) # Remove repetition
+      request.session['ingreds'] = qList
+      tmplVars['qList'] = qList
+
       if len(qList) < 5:
          tmplVars['errorMsg'] = "Please provide at least 5 ingredients"
          return render_to_response('search.html', tmplVars)
+
       IngredientsList = getIngredientsList( qList )
       recipes = getPossibleRecipes(IngredientsList, extra, minIngreds)
       if recipes:
@@ -110,48 +156,16 @@ def getSimilarIngredients( i ):
    IngredientsList += Ingredient.objects.filter(name__iendswith= p.plural(i) )
    return IngredientsList
 
+# ============================================================================
+# Small subroutines ==========================================================
+# ============================================================================
+
 def intConv(num, default):
+   '''input a string to be converted to an integer.
+   If the conversion is not valid, return default.'''
    try:
       return int(num)
    except ValueError:
       return default
    except TypeError:
       return default
-
-def searchSimple(request):
-   pageSize = 12
-   q        = request.GET.get('IngredientsList')
-   page     = request.GET.get('page')
-   if not page:
-      page = '1'
-   if q:
-      start = (int(page)-1)*pageSize
-      res = Yummly().search(q, maxResult=pageSize, start=start)
-      maxPage = ceil( float(res['totalMatchCount']) / float(pageSize) )
-      if start > res['totalMatchCount']:
-         errorMsg    = 'Page #%s exceeds the total number of results' % page
-         infoMsg     = None
-         matches     = []
-      else:
-         matches = res['matches']
-         infoMsg = 'Results %d - %d' % ( start+1, start+1+pageSize )
-         for r in matches:
-            r['imageUrlsBySize']['230'] = r['imageUrlsBySize']['90'].replace('s90-c','s230-c')
-            r['yummlyUrl'] = "http://www.yummly.com/recipe/%s"%r['id']
-            r['ingredientsStr'] = ', '.join( r['ingredients'] )
-         else:
-            errorMsg = 'No recipes found for %s. Please try again.' % q
-   else:
-      matches     = None
-      errorMsg    = None
-      infoMsg     = None
-      maxPage     = None
-   return render_to_response('searchSimple.html',{
-      'RecipeSearch' : True,
-      'matches' : matches,
-      'q': q,
-      'errorMsg': errorMsg,
-      'infoMsg': infoMsg,
-      'page': page,
-      'maxPage': maxPage,
-      })
