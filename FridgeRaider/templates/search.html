@@ -39,9 +39,10 @@
          {# User Input Form #}
          <form action="" id='ingredientsForm'>
             {% if qList %}
-               <div class="row"><div class="col-md-3">
-                  <table class="table table-striped table-hover table-condensed"
-                         style="text-align: left;">
+               {# Ingredient checkboxes #}
+               <div class="row">
+                  <div class="col-md-3">
+                  <table class="table table-striped table-hover table-condensed ingredTable">
                      <thead>
                         <tr>
                            <th>#</th>
@@ -50,15 +51,29 @@
                         </tr>
                      </thead>
 
-                     <tbody>
-                        {% for i in qList %}
-                           <tr>
-                              <td>{{ forloop.counter }}</td>
-                              <td><input type="checkbox"></td>
-                              <td>{{ i }}</td>
-                           </tr>
-                        {% endfor %}
-                     </tbody>
+                     {% for i in qList %}
+                        <tr>
+                           <td>{{ forloop.counter }}</td>
+                           <td><input type="checkbox"></td>
+                           <td>{{ i }}</td>
+                        </tr>
+
+                        {% if forloop.counter|divisibleby:"10" %}
+                           {# End the table and div, then create a new table (with header) #}
+                           </table></div>
+                           <div class="col-md-3">
+                           <table class="table table-striped table-hover table-condensed ingredTable">
+                           <thead>
+                              <tr>
+                                 <th>#</th>
+                                 <th>Use?</th>
+                                 <th>Ingredient</th>
+                              </tr>
+                           </thead>
+
+                        {% endif %}
+                     {% endfor %}
+
                   </table>
                </div></div>
             {% endif %}
@@ -66,7 +81,7 @@
             {# Search Box #}
             <div class="row">
                <div class="input-group">
-                  <span class="input-group-addon">Ingredients:</span>
+                  <span class="input-group-addon">Add more ingredients:</span>
                   {% if q %}
                      <input type="text" name="q" id="IngredientsInput" class="form-control" placeholder="For example: onions, bok choy, coconut milk" value="{{ q }}">
                   {% else %}

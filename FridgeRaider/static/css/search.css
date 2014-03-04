@@ -29,3 +29,11 @@ body {
    text-align: left;
    padding-top: 10px;
 }
+
+.ingredTable {
+  text-align: center;
+}
+
+.ingredTable th{
+  text-align: center;
+}
