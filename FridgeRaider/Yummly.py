@@ -32,6 +32,7 @@ class Yummly:
 		return i
 
 	def addRecipes(self, recipes):
+		numSaved = 0
 		for r in recipes:
 			if not r['ingredients']:
 				continue
@@ -40,33 +41,40 @@ class Yummly:
 											rating = r['rating'],
 											sourceDisplayName = r['sourceDisplayName'],
 											totalTimeInSeconds = r['totalTimeInSeconds'],
-											imageUrl90 = r['imageUrlsBySize']['90'],
+											# imageUrl90 = r['imageUrlsBySize']['90'],
 											num_ingredients = len(r['ingredients']))
+			if 'imageUrlsBySize' in r:
+				recipe.imageUrl90 = r['imageUrlsBySize']['90'],
+
 			try:
 				recipe.save()
+				sys.stdout.write('.')
+				numSaved += 1
 			except IntegrityError:
-				print 'yummlyId = "%s" already exists in the database' % r['id']
+				# 'yummlyId = "%s" already exists in the database' % r['id']
+				sys.stdout.write('x')
 				continue
 			for ingredientName in r['ingredients']:
 				try:
 					ingredientObj = Ingredient.objects.get(name=ingredientName)
 					recipe.ingredients.add(ingredientObj)
 				except ObjectDoesNotExist:
-					print 'Adding "%s" to the ingredients table' % ingredientName
+					# print 'Adding "%s" to the ingredients table' % ingredientName
 					ingredientObj = self.addIngredient( ingredientName )
 					recipe.ingredients.add( ingredientObj )
-
+		return numSaved
 	def getRecipes(self, IngredientsList, numPerRequest = 10, start=0):
 		res = self.search(IngredientsList, numPerRequest, start)
 		matchCount = res['totalMatchCount']
-		self.addRecipes( res['matches'] )
+		numSaved = self.addRecipes( res['matches'] )
 		start += numPerRequest
 		page = 1
 		while start < matchCount:
 			print '\nRESULTS FOR REQUEST #%d (start=%d out of total matches=%d)\n' % (page, start,matchCount)
 			res = self.search(IngredientsList, numPerRequest, start)
 			if res:
-				self.addRecipes( res['matches'] )
+				numSaved += self.addRecipes( res['matches'] )
+				print '\nTotal # Saved: %d' % numSaved
 			start += numPerRequest
 			page += 1
 
@@ -91,7 +99,6 @@ class Yummly:
 
 if __name__ == '__main__':
 	y       = Yummly()
-	y.getRecipes('Caramelized Onions', numPerRequest=1500,start=0)
 	y.getRecipes('', numPerRequest=1500,start=0)
 	# res = y.search('',maxResult=10)
 
