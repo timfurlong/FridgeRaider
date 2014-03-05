@@ -37,37 +37,37 @@
       <div class="starter-template">
 
          {# User Input Form #}
-         <form action="" id='ingredientsForm'>
+         <form action="" id='ingredientsForm' method="get">
             {% if qList %}
                {# Ingredient checkboxes #}
                <div class="row">
                   <div class="col-md-3">
-                  <table class="table table-striped table-hover table-condensed ingredTable">
+                  <table class="table table-condensed table-hover ingredTable">
                      <thead>
                         <tr>
                            <th>#</th>
-                           <th>Use?</th>
                            <th>Ingredient</th>
+                           <th>Remove?</th>
                         </tr>
                      </thead>
 
                      {% for i in qList %}
                         <tr>
                            <td>{{ forloop.counter }}</td>
-                           <td><input type="checkbox"></td>
-                           <td>{{ i }}</td>
+                           <td class="existing-ingredient" id="td_{{forloop.counter}}">{{ i }}</td>
+                           <td><span class="glyphicon glyphicon-remove remIngred"></span></td>
                         </tr>
 
-                        {% if forloop.counter|divisibleby:"10" %}
+                        {% if forloop.counter|divisibleby:"10" and not forloop.last %}
                            {# End the table and div, then create a new table (with header) #}
                            </table></div>
                            <div class="col-md-3">
-                           <table class="table table-striped table-hover table-condensed ingredTable">
+                           <table class="table table-condensed table-hover ingredTable">
                            <thead>
                               <tr>
                                  <th>#</th>
-                                 <th>Use?</th>
                                  <th>Ingredient</th>
+                                 <th>Remove?</th>
                               </tr>
                            </thead>
 
@@ -195,7 +195,7 @@
             {% else %}
                <div class="row row-padded">
                   <div class="alert alert-danger">
-                     <p>No recipes found for "{{ q }}". Please try again.</p>
+                     <p>No recipes found. Please add more ingredients and try again.</p>
                   </div>
                </div>
             {% endif %}

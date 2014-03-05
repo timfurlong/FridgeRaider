@@ -85,3 +85,14 @@ class TestRecipeLookup(TestCase):
       ingreds = getIngredientsList( 'oil, onion' )
       matches = getPossibleRecipes(ingreds) # rather than olive oil
       self.assertIn(r, matches)
+
+   def test_blank_ingredient(self):
+      '''
+      blank ingredients should be ignored
+      '''
+      desired = getIngredientsList('oil, onion')
+      self.assertEqual( desired, getIngredientsList('oil, onion,') )
+      self.assertEqual( desired, getIngredientsList(',oil, onion') )
+      self.assertEqual( desired, getIngredientsList(' ,oil, onion') )
+      self.assertEqual( desired, getIngredientsList('oil, onion, ') )
+      self.assertEqual( desired, getIngredientsList('oil, onion, , ') )

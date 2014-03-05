@@ -1,6 +1,6 @@
 from FridgeRaider.models import Ingredient, Recipe
 from FridgeRaider.Yummly import Yummly
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from math import ceil
 import inflect
@@ -58,30 +58,32 @@ def search(request):
 
    # Get request
    q          = request.GET.get('q')
-   page       = request.GET.get('page')
    extra      = request.GET.get('extra')
    minIngreds = request.GET.get('min')
+   page       = request.GET.get('page')
 
    extra      = intConv(extra, 0)
    minIngreds = intConv(minIngreds, 0)
 
-   tmplVars =  {'RecipeSearch': True,
+   context =  {'RecipeSearch': True,
                 'q' : q,
                 'extra' : extra,
                 'min': minIngreds,} # initial template dictionary
    if q: # Search was made
+      if 'existing' in request.GET:
+         # Some ingredients have already been specified
+         existing = request.GET.get('existing')
+         if existing:
+            q = existing + q
       qList = [i.strip() for i in q.split(',')]
-      qList = [i for i in qList if i!='']
-      if 'ingreds' in request.session:
-         # Some ingredients have already been specified in this session
-         qList += request.session['ingreds']
+      qList = [i for i in qList if i]
       qList = list( set(qList) ) # Remove repetition
       request.session['ingreds'] = qList
-      tmplVars['qList'] = qList
+      context['qList'] = qList
 
       if len(qList) < 5:
-         tmplVars['errorMsg'] = "Please provide at least 5 ingredients"
-         return render_to_response('search.html', tmplVars)
+         context['errorMsg'] = "Please provide at least 5 ingredients"
+         return render(request, 'search.html', context)
 
       IngredientsList = getIngredientsList( qList )
       recipes = getPossibleRecipes(IngredientsList, extra, minIngreds)
@@ -98,13 +100,13 @@ def search(request):
          for m in matches:
             m.imageUrl = m.getImageUrlBySize(230)
             m.getIngredientOwnership( IngredientsList )
-         tmplVars['matches'] = matches
+         context['matches'] = matches
 
-         tmplVars['infoMsg'] = 'Results %d - %d' % ( matches.start_index(),
+         context['infoMsg'] = 'Results %d - %d' % ( matches.start_index(),
                                                          matches.end_index() )
          if matches.has_other_pages():
-            tmplVars['infoMsg'] += ' (out of %d)' % paginator.count
-   return render_to_response('search.html', tmplVars)
+            context['infoMsg'] += ' (out of %d)' % paginator.count
+   return render(request, 'search.html', context)
 
 def getIngredientsList(q):
    if type(q) == list:
